@@ -61,9 +61,9 @@ class segtree_2d:
         return cur
     
     def _sum_helper(self,cur,x1,y1,x2,y2):
-        if not cur or x2<cur.x_lt or y2<cur.y_lt or x1>cur.x_rd or y1>cur.y_rd:
+        if not cur or x2<cur.x_lt or y2<cur.y_lt or x1>cur.x_rd or y1>cur.y_rd:    #no intersection
             return 0
-        elif x1<=cur.x_lt and y1<=cur.y_lt and x2>=cur.x_rd and y2>=cur.y_rd:
+        elif x1<=cur.x_lt and y1<=cur.y_lt and x2>=cur.x_rd and y2>=cur.y_rd:   #cur node's range totally contains in our search range
             return cur.sum
         return sum(self._sum_helper(child,x1,y1,x2,y2) for child in cur.children)
                     
