@@ -1,0 +1,76 @@
+# 2D segment tree
+class segnode_2d:
+    def __init__(self,x1,y1,x2,y2):
+        # x1,y1: left_top coordinate
+        # x2,y2: right_down coordinate
+        self.x_lt = x1   
+        self.y_lt = y1
+        self.x_rd = x2
+        self.y_rd = y2
+        self.sum = 0
+        self.children = [None]*4   # children order is: left_top, right_top, left_down, right_down
+
+class segtree_2d:
+    def __init__(self,matrix):
+        self.matrix = matrix    #2d list
+        self.root = self._build_segtree(matrix,0,0,len(matrix)-1,len(matrix[0])-1)
+    
+    def update(self,x,y,val):
+        if x<0 or x>=len(self.matrix) or y<0 or y>=len(matrix[0]):   #update coordinate not in matrix
+            return
+        diff = val - self.matrix[x][y]
+        self.matrix[x][y] = val
+        cur = self.root
+        while cur:
+            if cur.x_lt<=x<=cur.x_rd and cur.y_lt<=y<=cur.y_rd:
+                cur.sum += diff
+            x_mid, y_mid = (cur.x_lt+cur.x_rd)//2, (cur.y_lt+cur.y_rd)//2
+            if x<=x_mid and y<=y_mid:
+                cur = cur.children[0]
+            elif x<=x_mid and y>y_mid:
+                cur = cur.children[2]
+            elif x>x_mid and y<=y_mid:
+                cur = cur.children[1]
+            else:
+                cur = cur.children[3]
+    
+    def find_sum(self,x1,y1,x2,y2):
+        return self._sum_helper(self.root,x1,y1,x2,y2)
+    
+    def _build_segtree(self,matrix,x1,y1,x2,y2):
+        if x1>x2 or y1>y2:
+            return
+        if x1==x2 and y1==y2:
+            cur = segnode_2d(x1,y1,x2,y2)
+            cur.sum = self.matrix[x1][y1]
+            return cur
+        cur = segnode_2d(x1,y1,x2,y2)
+        cur.children[0] = self._build_segtree(matrix,x1,y1,(x1+x2)//2,(y1+y2)//2)
+        cur.children[1] = self._build_segtree(matrix,x1,(y1+y2)//2+1,(x1+x2)//2,y2)
+        cur.children[2] = self._build_segtree(matrix,(x1+x2)//2+1,y1,x2,(y1+y2)//2)
+        cur.children[3] = self._build_segtree(matrix,(x1+x2)//2+1,(y1+y2)//2+1,x2,y2)
+        if cur.children[0]:
+            cur.sum += cur.children[0].sum
+        if cur.children[1]:
+            cur.sum += cur.children[1].sum
+        if cur.children[2]:
+            cur.sum += cur.children[2].sum
+        if cur.children[3]:
+            cur.sum += cur.children[3].sum
+        
+        return cur
+    
+    def _sum_helper(self,cur,x1,y1,x2,y2):
+        if not cur or x2<cur.x_lt or y2<cur.y_lt or x1>cur.x_rd or y1>cur.y_rd:
+            return 0
+        elif x1<=cur.x_lt and y1<=cur.y_lt and x2>=cur.x_rd and y2>=cur.y_rd:
+            return cur.sum
+        return sum(self._sum_helper(child,x1,y1,x2,y2) for child in cur.children)
+                    
+        
+#test
+matrix = [[1,2,3],[4,5,6],[7,8,9]]
+seg_tree = segtree_2d(matrix)
+print(seg_tree.find_sum(0,0,1,2))
+seg_tree.update(1,1,7)
+print(seg_tree.find_sum(0,0,1,2))
